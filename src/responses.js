@@ -62,12 +62,19 @@ const addUsers = (request, response) => {
     const newUserParams = query.parse(newUserString);
     if (users[newUserParams.name]) {
       users[newUserParams.name] = newUserParams;
-      respondJSONMeta(request, response, 204);
+      return respondJSONMeta(request, response, 204);
     } else if (newUserParams.name && newUserParams.age) {
       users[newUserParams.name] = newUserParams;
-      return respondJSONMeta(request, response, 201);
+      const message = {
+        message: 'Created Successfully',
+      };
+      return respondJSON(request, response, 201, message);
     }
-    return respondJSONMeta(request, response, 400);
+    const message = {
+      id: 'missingParams',
+      message: 'Name and age are both required',
+    };
+    return respondJSON(request, response, 400, message);
   });
 };
 

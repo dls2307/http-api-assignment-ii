@@ -33,7 +33,13 @@
 
     if(xhr.response){
       const obj=JSON.parse(xhr.response);
-      content.innerHTML+=`${xhr.response}`;
+      if(obj.message){
+        content.innerHTML+=`<p>${obj.message}</p>`;
+      }
+      else{
+        const users = JSON.stringify(obj.users);
+        content.innerHTML+=`<p>${users}</p>`;
+      }
     }
   };
 
@@ -72,6 +78,8 @@
     submit.addEventListener('click',getRequest);
     postSubmit.addEventListener('click',sendRequest);
   };
+
+  window.onload=init;
   </script>
 </head>
 <body>
