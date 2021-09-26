@@ -9,7 +9,6 @@ const respondJSON = (request, response, status, object) => {
   const headers = {
     'Content-Type': 'application/json',
   };
-
   response.writeHead(status, headers);
   response.write(JSON.stringify(object));
   response.end();
@@ -40,7 +39,6 @@ const getUsers = (request, response) => {
   const responseJSON = {
     users,
   };
-
   return respondJSON(request, response, 200, responseJSON);
 };
 
@@ -66,7 +64,7 @@ const addUsers = (request, response) => {
       users[newUserParams.name] = newUserParams;
       respondJSONMeta(request, response, 204);
     } else if (newUserParams.name && newUserParams.age) {
-      users[newUserParams] = newUserParams;
+      users[newUserParams.name] = newUserParams;
       return respondJSONMeta(request, response, 201);
     }
     return respondJSONMeta(request, response, 400);
