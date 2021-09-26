@@ -7,6 +7,79 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
 
+//Handles response on our client
+  const handleResponse=(xhr,parseResponse)=>{
+    const content = document.querySelector("#content");
+
+    switch(xhr.status) {
+        case 200:
+          content.innerHTML = `<b>Success</b>`;
+          break;
+        case 201:
+          content.innerHTML = '<b>Create</b>';
+          break;
+        case 204:
+          content.innerHTML = '<b>Updated (No Content)</b>';
+          break;
+        case 400:
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 404:
+          content.innerHTML = `<b>Resource Not Found</b>`;
+          break;
+        default:
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+    }
+
+    if(parseResponse){
+      const obj=JSON.parse(xhr.response);
+      console.dir(obj);
+      content.innerHTML+=`${xhr.response}`;
+    }
+  };
+
+  const requestPost = (e,nameForm)=>{
+    //Adds user to the database
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST',"/addUsers");
+    xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+    xhr.setRequestHeader('Accept','application/json');
+    xhr.onload=()=>handleResponse(xhr,false);
+    const newUser = `name=${nameForm.querySelector("#nameField").value}&age=${nameForm.querySelector("#ageField").value}`;
+    xhr.send(newUser);
+    e.preventDefault();
+    return false;
+  };
+
+  const requestUpdate=(e,userForm)=>{
+    const url=userForm.querySelector("#urlField").value;
+    const method=userForm.querySelector("#methodSelect").value;
+    const xhr = new XMLHttpRequest();
+    xhr.open(method,url);
+    xhr.setRequestHeader('Accept','application/json');
+    if(method==="get"){
+      xhr.onload=()=>handleResponse(xhr,true);
+    }
+    else{
+      xhr.onload=()=>handleResponse(xhr,false);
+    }
+    xhr.send();
+  };
+
+  const init = () =>{
+    //Gets both forms
+    const nameForm = document.querySelector("#nameForm");
+    const userForm = document.querySelector("#userForm");
+
+    //Two different functions for getting or adding information
+    const getInfo =(e)=>requestUpdate(e,userForm);
+    const addInfo = (e) => requestPost(e,nameForm);
+
+    nameForm.addEventListener('submit',addInfo);
+    userForm.addEventListener('submit',getInfo);
+  };
+
   </script>
 </head>
 <body>

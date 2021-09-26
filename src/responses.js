@@ -1,47 +1,95 @@
+const fs = require('fs');
+const query = require('querystring');
+
 const users = {};
+const index = fs.readFileSync(`${__dirname}/../client/client.html`);
+const css = fs.readFileSync(`${__dirname}/../client/style.css`);
 
-const respondJSON = (request,response,status,object)=>{
-    const headers ={
-        'Content-Type':'application/json',
-    };
+const respondJSON = (request, response, status, object) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
 
-    response.writeHead(status,headers);
-    response.write(JSON.stringify(object));
-    response.end();
+  response.writeHead(status, headers);
+  response.write(JSON.stringify(object));
+  response.end();
 };
 
-const respondJSONMeta = (request,response,status) =>{
-    const headers ={
-        'Content-Type':'application/json',
-    };
+const respondJSONMeta = (request, response, status) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
 
-    response.writeHead(status,headers);
+  response.writeHead(status, headers);
+  response.end();
+};
+
+const getIndex = (request, response) => {
+  response.writeHead(200, { 'Content-Type': 'text/html' });
+  response.write(index);
+  response.end();
+};
+
+const getCSS = (request, response) => {
+  response.writeHead(200, { 'Content-Type': 'text/css' });
+  response.write(css);
+  response.end();
+};
+
+const getUsers = (request, response) => {
+  const responseJSON = {
+    users,
+  };
+
+  return respondJSON(request, response, 200, responseJSON);
+};
+
+const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
+
+const addUsers = (request, response) => {
+  const newUser = [];
+
+  request.on('error', (err) => {
+    console.dir(err);
+    response.statusCode = 400;
     response.end();
-}
+  });
 
-const getUsers = (request,response)=>{
-    const responseJSON = {
-        users,
-    };
+  request.on('data', (chunk) => {
+    newUser.push(chunk);
+  });
 
-    return respondJSON(reuqest,response,200,responseJSON);
-}
+  request.on('end', () => {
+    const newUserString = Buffer.concat(newUser).toString();
+    const newUserParams = query.parse(newUserString);
+    if (users[newUserParams.name]) {
+      users[newUserParams.name] = newUserParams;
+      respondJSONMeta(request, response, 204);
+    } else if (newUserParams.name && newUserParams.age) {
+      users[newUserParams] = newUserParams;
+      return respondJSONMeta(request, response, 201);
+    }
+    return respondJSONMeta(request, response, 400);
+  });
+};
 
-const getUsersMeta = (request,response)=>{
-    const responseJSON = {
-        users,
-    };
+const notFound = (request, response) => {
+  const responseJSON = {
+    id: 'notFound',
+    message: 'The page you were looking for was not found',
+  };
 
-    return respondJSONMeta(reuqest,response,200);
-}
+  return respondJSON(request, response, 404, responseJSON);
+};
 
-const addUsers = (request,response, name, age) =>{
-    const newUser = {
-        name:name,
-        age:age,
-    };
+const notFoundMeta = (request, response) => respondJSONMeta(request, response, 404);
 
-    users[newUser.name]=newUser;
-
-    return respondJSON(request,response,201,newUser);
+module.exports = {
+  getIndex,
+  getCSS,
+  getUsers,
+  getUsersMeta,
+  addUsers,
+  notFound,
+  notFoundMeta,
 };
